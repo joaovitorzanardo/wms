@@ -675,3 +675,15 @@ begin
 	close PRODUCTS_BY_NAME_LIKE;
 end;
 $BODY$;
+
+-- RULES
+
+CREATE OR REPLACE RULE qtd_warehouse_not_negative_insert 
+AS ON INSERT TO warehouse 
+WHERE new.quantity < 0 
+DO INSTEAD NOTHING;
+
+CREATE OR REPLACE RULE qtd_warehouse_not_negative_update
+AS ON UPDATE TO warehouse 
+WHERE new.quantity < 0 
+DO INSTEAD NOTHING;
