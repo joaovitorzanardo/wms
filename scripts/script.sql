@@ -16,7 +16,7 @@ CREATE TABLE order_itens (
   order_itens_id INTEGER PRIMARY KEY,
   order_id INTEGER NOT NULL,
   product_id INTEGER NOT NULL,
-  quantity INTEGER NOT NULL	
+  quantity INTEGER NOT NULL
 );
 
 CREATE TABLE customer (
@@ -622,4 +622,56 @@ CREATE TRIGGER product_bu
     BEFORE UPDATE 
     ON public.product
     FOR EACH ROW
-    EXECUTE FUNCTION public.validate_product();                                
+    EXECUTE FUNCTION public.validate_product();
+
+-- TYPES
+
+CREATE TYPE product_row AS (
+	product_id integer,
+	bar_code varchar(200),
+	name varchar(200),
+	brand varchar(200),
+	price float,
+	quantity integer
+);
+
+-- FUNCTIONS
+
+CREATE OR REPLACE FUNCTION public.getproductbynamelike(
+	productname text)
+    RETURNS SETOF product_row 
+    LANGUAGE 'plpgsql'
+AS $BODY$
+declare
+	vProductName text;
+	
+	vProductId integer;
+	vBarCode varchar(200);
+	vName varchar(200);
+	vBrand varchar(200);
+	vPrice float;
+	vQuantity integer;
+	
+	Result product_row%rowtype;
+	
+	PRODUCTS_BY_NAME_LIKE cursor (cProductName text) is
+		select * from products where name like '%' || cProductName || '%';
+	
+begin
+	vProductName := productName;
+	
+	OPEN PRODUCTS_BY_NAME_LIKE(vProductName);
+	fetch PRODUCTS_BY_NAME_LIKE into vProductId, vBarCode, vName, vBrand, vPrice, vQuantity;
+	while found loop
+		Result.product_id := vProductId;
+		Result.bar_code := vBarCode;
+		Result.name := vName;
+		Result.brand := vBrand;
+		Result.price := vPrice;
+		Result.quantity := vQuantity;
+		return next Result;
+		fetch PRODUCTS_BY_NAME_LIKE into vProductId, vBarCode, vName, vBrand, vPrice, vQuantity;
+	end loop;
+	close PRODUCTS_BY_NAME_LIKE;
+end;
+$BODY$;
