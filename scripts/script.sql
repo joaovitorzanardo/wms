@@ -418,7 +418,7 @@ CREATE OR REPLACE FUNCTION public.validate_product()
     LANGUAGE 'plpgsql'
 AS $BODY$
 DECLARE
-	vProductId boolean;
+	vProductId integer;
 BEGIN
 	
 	select product_id into vProductId from product where bar_code = new.bar_code;
